@@ -1,0 +1,8 @@
+myenv/
+
+.DS_Store
+
+db_data/
+*.dump
+*.sql
+!sql/*/*.sql

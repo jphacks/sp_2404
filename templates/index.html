@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Notifications</title>
+</head>
+<body>
+    <h1>WebSocket Notifications Example</h1>
+    <div id="messages"></div>
+
+    <script>
+        const messages = document.getElementById('messages');
+        const ws = new WebSocket('ws://localhost:8000/ws/notifications/');
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const message = data.message;
+            const messageElement = document.createElement('p');
+            messageElement.textContent = message;
+            messages.appendChild(messageElement);
+        };
+
+        ws.onopen = function() {
+            ws.send(JSON.stringify({'message': 'Hello, WebSocket!'}));
+        };
+    </script>
+</body>
+</html>
