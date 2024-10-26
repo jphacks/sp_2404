@@ -10,3 +10,5 @@ mysqlclient==2.1.0
 django-allauth==65.1.0
 django-channels==0.7.0
 cloudinary==1.41.0
+django-bootstrap5==24.2
+django-bootstrap-icons==0.8.7
