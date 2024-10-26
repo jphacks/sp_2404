@@ -13,11 +13,10 @@ class Post(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     location = models.CharField(max_length=100, blank=True, null=True)
-    image = CloudinaryField('image')
+    image = models.ImageField(upload_to='post_images/', blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name='posts', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_virtual = models.BooleanField(default=False)
-    optimized_description = models.TextField(blank=True, null=True)
     
     def __str__(self):
         return self.title
