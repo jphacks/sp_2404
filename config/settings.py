@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-0em0it0&$3o4p*v#l%(t!1zmznb+ivbpgo4*x^ccp$)k=9!laj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -160,3 +160,5 @@ load_dotenv()
 
 # STABILITY_API_TOKENの取得
 STABILITY_API_TOKEN = os.getenv("STABILITY_API_TOKEN")
+
+LOGIN_URL = '/users/login/'
