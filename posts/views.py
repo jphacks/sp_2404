@@ -48,29 +48,37 @@ def create_post(request):
 import requests
 import time
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from .models import GeneratedImage, Post
-from .forms import PostForm
+from .forms import ImageGenerationForm
 from django.contrib.auth.decorators import login_required
 
 @login_required
 def generate_image_view(request):
     if request.method == 'POST':
-        form = PostForm(request.POST, request.FILES)
+        form = ImageGenerationForm(request.POST, request.FILES)
         if form.is_valid():
             prompt = form.cleaned_data.get('description')
-            user = request.user
+            location = form.cleaned_data.get('location')
+            print(prompt, flush=True)
+            print(location, flush=True)
+            print(settings.STABILITY_API_TOKEN, flush=True)
             
-            # Stability AI APIを使用して画像を生成
+            # Stability AI APIの設定
             api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
             headers = {
-                "authorization": f"Bearer {settings.STABILITY_API_TOKEN}",
+                "authorization": f"Bearer sk-BjPGEtjnOKHqyBwyj80xy0S3fU25lpBFxiSuOosYNdUf9myQ",
                 "accept": "image/*"
             }
             data = {
-                "prompt": prompt,
-                "output_format": "jpeg"
+                "model_id": "sd3.5-large-turbo",
+                "prompt": f"{prompt}, {location}",
+                "output_format": "jpeg",
+                "height": 720,
+                "width": 720,
+                "samples": 1,
+                "steps": 40,
+                "aspect_ratio": "16:9"
             }
             retries = 5
             wait_time = 120
@@ -78,32 +86,21 @@ def generate_image_view(request):
             for attempt in range(1, retries + 1):
                 response = requests.post(api_url, headers=headers, files={"none": ''}, data=data)
                 if response.status_code == 200:
-                    # 画像の生成に成功した場合
-                    output_path = f'media/generated_images/{user.username}_{int(time.time())}.jpeg'
-                    with open(output_path, 'wb') as file:
-                        file.write(response.content)
-                    
-                    # 生成された画像をデータベースに保存
-                    generated_image = GeneratedImage.objects.create(
-                        user=user,
-                        prompt=prompt,
-                        image=output_path
-                    )
-
-                    # Postモデルに画像を紐付けて保存
-                    post = form.save(commit=False)
-                    post.user = user
-                    post.image = generated_image.image
-                    post.save()
-                    form.save_m2m()
-                    
-                    return redirect('post_list')
+                    # 生成した画像を直接ユーザーに返却
+                    return HttpResponse(response.content, content_type="image/jpeg")
                 elif response.status_code == 503:
                     time.sleep(wait_time)
                 else:
                     return JsonResponse({'status': 'error', 'message': response.text})
-        
-        return JsonResponse({'status': 'error', 'message': '画像の生成に失敗しました。後ほどお試しください。'})
+
+            # すべての再試行が失敗した場合
+            return JsonResponse({'status': 'error', 'message': '画像生成に失敗しました。後でお試しください。'})
+
+        # バリデーションに失敗した場合
+        print("Form validation failed:", form.errors, flush=True)
+        return JsonResponse({'status': 'error', 'message': '入力内容にエラーがあります。再度確認してください。'})
+
     else:
-        form = PostForm()
+        # GETリクエストの場合はフォームを表示
+        form = ImageGenerationForm()
     return render(request, 'generate_image.html', {'form': form})

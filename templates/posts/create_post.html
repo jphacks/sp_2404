@@ -9,8 +9,14 @@
     <script>
         function generateImage() {
             const prompt = document.getElementById('id_description').value;
+            const location = document.getElementById('id_location').value; // ロケーションの取得
             const resultDiv = document.getElementById('result');
-            const loadingDiv = document.getElementById('loading');
+            const loadingDiv = document.getElementById('loading'); // 'loading' 要素が存在するか確認
+
+            if (!loadingDiv) {
+                console.error("Loading element not found!");
+                return;
+            }
             
             // 待機アニメーションを表示
             loadingDiv.style.display = 'block';
@@ -18,6 +24,7 @@
 
             // フォームデータを準備
             const formData = new FormData(document.getElementById('post-form'));
+            formData.append('location', location); // ロケーションを追加
 
             // Fetch APIを使って画像生成リクエストを送信
             fetch("{% url 'generate_image' %}", {
@@ -27,23 +34,39 @@
                     'X-CSRFToken': '{{ csrf_token }}'
                 }
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(blob => {
                 // 待機アニメーションを非表示
                 loadingDiv.style.display = 'none';
 
-                if (data.status === 'success') {
-                    // 生成された画像を表示
-                    const img = document.createElement('img');
-                    img.src = data.image_url;
-                    resultDiv.appendChild(img);
-                } else {
-                    resultDiv.innerHTML = `<p>Error: ${data.message}</p>`;
+                // 生成された画像を表示
+                const img = document.createElement('img');
+                const imageUrl = URL.createObjectURL(blob);
+                img.src = imageUrl;
+                resultDiv.appendChild(img);
+
+                // URLは直接input[type=file]に設定できないため、画像ファイルをユーザーに表示して確認させます
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imageUrl;
+                downloadLink.download = 'generated_image.jpeg';
+                downloadLink.textContent = '生成された画像をダウンロード';
+                resultDiv.appendChild(downloadLink);
+
+                // Blob を使って画像データを hidden input に保存するための処理
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    document.getElementById('id_image').value = reader.result;
                 }
+                reader.readAsDataURL(blob);
             })
             .catch(error => {
                 loadingDiv.style.display = 'none';
-                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+                resultDiv.innerHTML = `<p class="text-danger">エラー: ${error.message}</p>`;
             });
         }
     </script>
@@ -81,12 +104,23 @@
                         <form id="post-form" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             {% bootstrap_form form layout='horizontal' floating_labels=True %}
+                            <!-- 非表示のフィールドに画像データをBase64形式で設定 -->
+                            <input type="hidden" id="id_image" name="image">
                             <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-primary btn-lg mt-3" onclick="generateImage()">投稿する</button>
+                                <button type="button" class="btn btn-primary btn-lg mt-3" onclick="generateImage()">画像を生成</button>
+                                <button type="submit" class="btn btn-success btn-lg mt-3 ms-3">投稿する</button>
                             </div>
                         </form>
                     </div>
                 </div>
+                <!-- ローディングアニメーション -->
+                <div id="loading" class="text-center my-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>画像を生成中です...</p>
+                </div>
+                <div id="result" class="text-center mt-4"></div>
                 <div class="text-center mt-4">
                     <a href="{% url 'post_list' %}" class="btn btn-outline-secondary">投稿一覧に戻る</a>
                 </div>
