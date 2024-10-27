@@ -6,6 +6,7 @@ from django.contrib.auth.models import User as auth_user
 from posts.models import Post
 from django.core.paginator import Paginator
 from django.http import Http404
+from django.views.decorators.http import require_http_methods
 
 # API用ViewSet
 class UserViewSet(viewsets.ModelViewSet):
@@ -70,3 +71,10 @@ def register_view(request):
     else:
         form = UserRegisterForm()
     return render(request, 'users/register.html', {'form': form})
+
+from django.contrib.auth import logout
+
+@require_http_methods(["GET", "POST"])
+def logout_view(request):
+    logout(request)
+    return redirect('post_list')  # ログアウト後のリダイレクト先

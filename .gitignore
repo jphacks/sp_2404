@@ -305,3 +305,11 @@ db_data/
 
 model_cache/*
 posts/__pycache__/serializers.cpython-310.pyc
+config/__pycache__/settings.cpython-310.pyc
+config/__pycache__/urls.cpython-310.pyc
+posts/__pycache__/forms.cpython-310.pyc
+posts/__pycache__/urls.cpython-310.pyc
+posts/__pycache__/models.cpython-310.pyc
+posts/__pycache__/views.cpython-310.pyc
+users/__pycache__/urls.cpython-310.pyc
+users/__pycache__/views.cpython-310.pyc
