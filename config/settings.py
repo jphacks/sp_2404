@@ -151,3 +151,12 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',  # For local development without Redis
     },
 }
+
+import os
+from dotenv import load_dotenv
+
+# .envファイルを読み込み
+load_dotenv()
+
+# STABILITY_API_TOKENの取得
+STABILITY_API_TOKEN = os.getenv("STABILITY_API_TOKEN")
