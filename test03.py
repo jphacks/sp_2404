@@ -70,17 +70,16 @@ def translate_text(texts, target_language="EN"):
     return translations
 
 
-def process_location_prompt(location, prompt):
-    # キーワードとエンティティ抽出結果を取得
-    keywords_result = extract_keywords(location, prompt)
-    entities_result = extract_entities(prompt)
 
-    # 結果を1つのリストにまとめる
-    combined_results = [*keywords_result, *entities_result, location, prompt]
+location = "旅行についての詳細情報"
+prompt = "このコードはgooラボAPIを使って、テキストからキーワードを抽出します。沖縄"
 
-    # 結果を翻訳
-    translated_texts = translate_text(combined_results)
+keywords_result = extract_keywords(location, prompt)
 
-    # 翻訳されたテキストを連結して返す
-    modified_prompt = ", ".join(translated_texts)
-    return modified_prompt
+entities_result = extract_entities(prompt)
+
+result = [*keywords_result, *entities_result, location, prompt]
+
+translated_texts = translate_text(result)
+modified_prompt = ", ".join(translated_texts)
+print(modified_prompt)

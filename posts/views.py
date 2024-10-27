@@ -7,23 +7,25 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm
 from django.contrib.auth.models import User
+import base64
+from django.core.files.base import ContentFile
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import PostForm
+from .models import Post
+from .utils import process_location_prompt
 
 # API用ViewSet
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-# テンプレート表示用ビュー
-def post_list(request):
-    posts = Post.objects.all()
-    return render(request, 'posts/post_list.html', {'posts': posts})
-
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)  # 投稿IDで特定の投稿を取得
     return render(request, 'posts/post_detail.html', {'post': post})
 
 def post_list(request):
-    post_list = Post.objects.all()  # 全ての投稿を取得
+    post_list = Post.objects.order_by('-created_at')  # 全ての投稿を取得
     paginator = Paginator(post_list, 10)  # 1ページあたり10件表示
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -36,9 +38,23 @@ def create_post(request):
         if form.is_valid():
             post = form.save(commit=False)
             post.user = request.user
+
+            # 画像データの取得とデコード処理
+            image_data = request.POST.get('image')
+            if image_data:
+                # "data:image/jpeg;base64," のプレフィックスを削除
+                format, imgstr = image_data.split(';base64,')
+                ext = format.split('/')[-1]  # 拡張子を取得（例: jpeg）
+
+                # 画像ファイルをデコードして ContentFile として保存
+                post.image = ContentFile(base64.b64decode(imgstr), name=f"generated_image.{ext}")
+
             post.save()
             form.save_m2m()
             return redirect('post_list')  # 投稿後のリダイレクト先
+        else:
+            # バリデーションエラーが発生した場合のエラー内容を出力
+            print("Form errors:", form.errors)  # ここでバリデーションエラーを出力
     else:
         form = PostForm()
     return render(request, 'posts/create_post.html', {'form': form})
@@ -60,9 +76,7 @@ def generate_image_view(request):
         if form.is_valid():
             prompt = form.cleaned_data.get('description')
             location = form.cleaned_data.get('location')
-            print(prompt, flush=True)
-            print(location, flush=True)
-            print(settings.STABILITY_API_TOKEN, flush=True)
+            modified_prompt = process_location_prompt(location, prompt)
             
             # Stability AI APIの設定
             api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
@@ -72,7 +86,7 @@ def generate_image_view(request):
             }
             data = {
                 "model_id": "sd3.5-large-turbo",
-                "prompt": f"{prompt}, {location}",
+                "prompt": modified_prompt,
                 "output_format": "jpeg",
                 "height": 720,
                 "width": 720,
