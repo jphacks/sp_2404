@@ -304,3 +304,4 @@ db_data/
 !sql/*/*.sql
 
 model_cache/*
+posts/__pycache__/serializers.cpython-310.pyc
