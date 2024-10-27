@@ -32,9 +32,14 @@
                                 <i class="bi bi-person-circle"></i> {{ user.username }}のプロフィール
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right"></i> ログアウト
+                            </a>
+                        </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'account_login' %}">
+                            <a class="nav-link" href="{% url 'login' %}">
                                 <i class="bi bi-box-arrow-in-right"></i> ログイン
                             </a>
                         </li>
