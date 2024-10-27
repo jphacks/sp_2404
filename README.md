@@ -29,6 +29,7 @@
 - いいねや他のSNSシェア機能などの拡張
 - 文章校正LLMの導入
 - 推論レベルでのさらなる最適化
+- さくらのクラウドへのデプロイ
 ### 注力したこと（こだわり等）
 - 文章の意図通りに正確に画像生成を行うための調整
 - Docomo様のgooラボAPIを使用した日本語解析の生成プロンプトへの応用
@@ -42,11 +43,17 @@
 * gooラボAPI(キーワード抽出API, 固有表現抽出API)
 
 #### フレームワーク・ライブラリ・モジュール
-* 
-* 
+* Django==5.0.6
+* django-sslserver==0.22
+* djangorestframework==3.15.1
+* pillow==10.3.0
+* python-dotenv==1.0.1
+* mysqlclient==2.1.0
+* django-bootstrap5==24.2
+* django-bootstrap-icons==0.8.7
 
 #### デバイス
-* 
+* Ubuntu-22.04
 * 
 
 ### 独自技術
