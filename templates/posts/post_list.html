@@ -111,9 +111,7 @@
                 {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="rounded-circle bg-light text-dark d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
-                                <i class="bi bi-person-circle"></i>
-                            </div>
+
                             <span class="ms-2">{{ user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -160,6 +158,9 @@
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">{{ post.title }}</h5>
                             <p class="card-text">{{ post.description|truncatewords:20 }}</p>
+                            <p class="text-muted small mb-2">
+                                投稿者: <a href="{% url 'user_profile' post.user.username %}">{{ post.user.username }}</a>
+                            </p>
                             {% if post.is_virtual %}
                                 <span class="badge bg-success mb-2">バーチャルイベント</span>
                             {% else %}
