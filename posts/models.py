@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from cloudinary.models import CloudinaryField
+from django.contrib.auth.models import User
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -40,3 +40,9 @@ class Like(models.Model):
     
     def __str__(self):
         return f'{self.user.username} likes {self.post.title}'
+
+class GeneratedImage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    prompt = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='generated_images/')
+    created_at = models.DateTimeField(auto_now_add=True)

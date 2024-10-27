@@ -3,12 +3,52 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>新しい投稿</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画像生成と投稿作成</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        function generateImage() {
+            const prompt = document.getElementById('id_description').value;
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            
+            // 待機アニメーションを表示
+            loadingDiv.style.display = 'block';
+            resultDiv.innerHTML = '';
+
+            // フォームデータを準備
+            const formData = new FormData(document.getElementById('post-form'));
+
+            // Fetch APIを使って画像生成リクエストを送信
+            fetch("{% url 'generate_image' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 待機アニメーションを非表示
+                loadingDiv.style.display = 'none';
+
+                if (data.status === 'success') {
+                    // 生成された画像を表示
+                    const img = document.createElement('img');
+                    img.src = data.image_url;
+                    resultDiv.appendChild(img);
+                } else {
+                    resultDiv.innerHTML = `<p>Error: ${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            });
+        }
+    </script>
 </head>
 <body class="bg-light">
-
     <!-- ヘッダー -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
@@ -38,11 +78,11 @@
                         <h2 class="h4 mb-0">新しい投稿を作成</h2>
                     </div>
                     <div class="card-body">
-                        <form method="post" enctype="multipart/form-data">
+                        <form id="post-form" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
-                            {% bootstrap_form form layout='horizontal' %}
+                            {% bootstrap_form form layout='horizontal' floating_labels=True %}
                             <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary btn-lg mt-3">投稿する</button>
+                                <button type="button" class="btn btn-primary btn-lg mt-3" onclick="generateImage()">投稿する</button>
                             </div>
                         </form>
                     </div>

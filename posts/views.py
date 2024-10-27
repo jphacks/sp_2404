@@ -42,3 +42,68 @@ def create_post(request):
     else:
         form = PostForm()
     return render(request, 'posts/create_post.html', {'form': form})
+
+
+# views.py
+import requests
+import time
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.conf import settings
+from .models import GeneratedImage, Post
+from .forms import PostForm
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def generate_image_view(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            prompt = form.cleaned_data.get('description')
+            user = request.user
+            
+            # Stability AI APIを使用して画像を生成
+            api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
+            headers = {
+                "authorization": f"Bearer {settings.STABILITY_API_TOKEN}",
+                "accept": "image/*"
+            }
+            data = {
+                "prompt": prompt,
+                "output_format": "jpeg"
+            }
+            retries = 5
+            wait_time = 120
+
+            for attempt in range(1, retries + 1):
+                response = requests.post(api_url, headers=headers, files={"none": ''}, data=data)
+                if response.status_code == 200:
+                    # 画像の生成に成功した場合
+                    output_path = f'media/generated_images/{user.username}_{int(time.time())}.jpeg'
+                    with open(output_path, 'wb') as file:
+                        file.write(response.content)
+                    
+                    # 生成された画像をデータベースに保存
+                    generated_image = GeneratedImage.objects.create(
+                        user=user,
+                        prompt=prompt,
+                        image=output_path
+                    )
+
+                    # Postモデルに画像を紐付けて保存
+                    post = form.save(commit=False)
+                    post.user = user
+                    post.image = generated_image.image
+                    post.save()
+                    form.save_m2m()
+                    
+                    return redirect('post_list')
+                elif response.status_code == 503:
+                    time.sleep(wait_time)
+                else:
+                    return JsonResponse({'status': 'error', 'message': response.text})
+        
+        return JsonResponse({'status': 'error', 'message': '画像の生成に失敗しました。後ほどお試しください。'})
+    else:
+        form = PostForm()
+    return render(request, 'generate_image.html', {'form': form})
