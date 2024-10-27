@@ -39,6 +39,9 @@
     <link rel="icon" type="image/png" sizes="384x384" href="{% static 'favicons/android-chrome-384x384.png' %}">
     <link rel="icon" type="image/png" sizes="512x512" href="{% static 'favicons/android-chrome-512x512.png' %}">
     <link rel="manifest" href="{% static 'favicons/manifest.json' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Walter+Turncoat&display=swap" rel="stylesheet">
 </head>
     <style>
         /* スタイリングの強化 */
@@ -76,13 +79,24 @@
             transform: scale(1.05);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
+        .navbar-brand {
+            font-family: "Walter Turncoat", cursive;
+            font-weight: 400;
+            font-style: normal;
+        }
+        .navbar-brand-icon {
+            border-radius: 100%;
+        }
     </style>
 <body class="bg-light">
 
 <!-- ヘッダー -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'post_list' %}">Mirodyssey</a>
+                    <a class="navbar-brand" href="{% url 'post_list' %}">
+                <img src="{% static 'favicons/favicon.ico' %}" alt="Logo" class="navbar-brand-icon" width="30" height="30">
+                <span class="navbar-brand-text">Mirodyssey</span>
+            </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>

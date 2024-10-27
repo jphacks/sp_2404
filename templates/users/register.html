@@ -38,6 +38,9 @@
     <link rel="icon" type="image/png" sizes="384x384" href="{% static 'favicons/android-chrome-384x384.png' %}">
     <link rel="icon" type="image/png" sizes="512x512" href="{% static 'favicons/android-chrome-512x512.png' %}">
     <link rel="manifest" href="{% static 'favicons/manifest.json' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Walter+Turncoat&display=swap" rel="stylesheet">
 </head>
     <style>
         /* スタイリングの強化 */
@@ -74,6 +77,14 @@
         .btn-lg:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .navbar-brand {
+            font-family: "Walter Turncoat", cursive;
+            font-weight: 400;
+            font-style: normal;
+        }
+        .navbar-brand-icon {
+            border-radius: 100%;
         }
     </style>
 <body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
