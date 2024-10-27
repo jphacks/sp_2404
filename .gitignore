@@ -302,3 +302,5 @@ db_data/
 *.dump
 *.sql
 !sql/*/*.sql
+
+model_cache/*

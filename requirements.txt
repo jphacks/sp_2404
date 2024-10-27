@@ -12,3 +12,9 @@ django-channels==0.7.0
 cloudinary==1.41.0
 django-bootstrap5==24.2
 django-bootstrap-icons==0.8.7
+# diffusers==0.31.0
+# transformers==4.46.0
+# scipy==1.14.1
+# ftfy==6.3.1
+# torch==2.2.2
+# accelerate==1.0.1
