@@ -56,12 +56,12 @@
 * django-bootstrap-icons==0.8.7
 
 #### 実行環境
-#### サーバーサイド
+##### サーバーサイド
 以下のサーバー環境で動作を確認しています。  
 - **Ubuntu 22.04** (さくらのクラウド IaaS)  
 - **Mac** (macOS)  
 - **Windows Subsystem for Linux (WSL)**: Ubuntu
-### クライアント
+##### クライアント
 以下のブラウザおよびデバイスで正常に動作を確認済みです。  
 - **PCブラウザ**  
   - Google Chrome  
