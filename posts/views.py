@@ -1,18 +1,18 @@
-from django.shortcuts import render, get_object_or_404
-from rest_framework import viewsets
-from .models import Post
-from .serializers import PostSerializer
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.conf import settings
 from django.core.paginator import Paginator
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import PostForm
-from django.contrib.auth.models import User
-import base64
 from django.core.files.base import ContentFile
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .forms import PostForm
+from django.contrib.auth.models import User
+from rest_framework import viewsets
+import base64
+import requests
+import time
+
 from .models import Post
+from .forms import PostForm, ImageGenerationForm
+from .serializers import PostSerializer
 from .utils import process_location_prompt
 
 # API用ViewSet
@@ -20,9 +20,31 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Post, Comment
+from .forms import CommentForm  # コメントフォームのインポート
+
 def post_detail(request, post_id):
-    post = get_object_or_404(Post, id=post_id)  # 投稿IDで特定の投稿を取得
-    return render(request, 'posts/post_detail.html', {'post': post})
+    post = get_object_or_404(Post, id=post_id)
+    comments = post.comments.all()  # 投稿に関連するすべてのコメントを取得
+
+    # コメントフォーム処理
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.user = request.user
+            comment.save()
+            return redirect('post_detail', post_id=post.id)
+    else:
+        form = CommentForm()
+
+    return render(request, 'posts/post_detail.html', {
+        'post': post,
+        'comments': comments,
+        'form': form,
+    })
 
 def post_list(request):
     post_list = Post.objects.order_by('-created_at')  # 全ての投稿を取得
@@ -60,15 +82,6 @@ def create_post(request):
     return render(request, 'posts/create_post.html', {'form': form})
 
 
-# views.py
-import requests
-import time
-from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponse
-from django.conf import settings
-from .forms import ImageGenerationForm
-from django.contrib.auth.decorators import login_required
-
 @login_required
 def generate_image_view(request):
     if request.method == 'POST':
@@ -77,7 +90,6 @@ def generate_image_view(request):
             prompt = form.cleaned_data.get('description')
             location = form.cleaned_data.get('location')
             modified_prompt = process_location_prompt(location, prompt)
-            
             # Stability AI APIの設定
             api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
             headers = {
@@ -118,3 +130,14 @@ def generate_image_view(request):
         # GETリクエストの場合はフォームを表示
         form = ImageGenerationForm()
     return render(request, 'generate_image.html', {'form': form})
+
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    
+    # コメントの投稿者または投稿の所有者のみ削除可能
+    if request.user == comment.user or request.user == comment.post.user:
+        comment.delete()
+        return redirect('post_detail', post_id=comment.post.id)
+    else:
+        return HttpResponseForbidden("削除権限がありません")
