@@ -177,6 +177,13 @@
                         <p class="text-muted small mb-2">
                             投稿者: <a href="{% url 'user_profile' post.user.username %}">{{ post.user.username }}</a>
                         </p>
+
+                        <div class="like-section mt-2">
+                            <button class="btn btn-like like-button p-2 rounded-2 {% if post.id in liked_posts %}btn-primary{% else %}btn-outline-primary{% endif %}" data-post-id="{{ post.id }}">
+                                いいね <span class="like-count">{{ post.likes.count }}</span>
+                            </button>
+                        </div>
+
                         <div class="mt-auto">
                             <p class="text-muted small mb-2">投稿日時:{{ post.created_at|date:"Y年m月d日 H:i" }}</p>
                             {% if post.is_virtual %}
@@ -205,6 +212,42 @@
 
     <!-- BootstrapのJavaScriptライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const likeButtons = document.querySelectorAll('.like-button');
+
+        likeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const postId = this.dataset.postId;
+                const url = `/posts/${postId}/like/`;
+
+                // 非同期でいいねリクエストを送信
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.liked) {
+                        // いいねが追加された場合、ボタンのクラスとテキストを変更
+                        button.classList.remove('btn-outline-primary');
+                        button.classList.add('btn-primary');
+                        button.querySelector('.like-count').textContent = data.like_count;
+                    } else {
+                        // いいねが取り消された場合、元のスタイルに戻す
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-outline-primary');
+                        button.querySelector('.like-count').textContent = data.like_count;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    });
+</script>
 </body>
 
 </html>

@@ -172,29 +172,38 @@
     </nav>
 
     <!-- 投稿詳細 -->
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <h1 class="display-5 mb-4">{{ post.title }}</h1>
-                <div class="card shadow-sm">
-                    {% if post.image %}
-                    <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}"
-                        style="height: 400px; object-fit: cover;">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title text-muted">
-                            <p class="text-muted small mb-2">
-                                投稿者: <a href="{% url 'user_profile' post.user.username %}">{{ post.user.username }}</a>
-                            </p>
-                        </h5>
-                        <p class="card-text mt-3">{{ post.description }}</p>
-                        <p class="text-muted">投稿日: {{ post.created_at|date:"Y年m月d日 H:i" }}</p>
-                        <a href="{% url 'post_list' %}" class="btn btn-secondary mt-3">投稿一覧に戻る</a>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-5 mb-4">{{ post.title }}</h1>
+            <div class="card shadow-sm">
+                {% if post.image %}
+                <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}"
+                    style="height: 400px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title text-muted">
+                        <p class="text-muted small mb-2">
+                            投稿者: <a href="{% url 'user_profile' post.user.username %}">{{ post.user.username }}</a>
+                        </p>
+                    </h5>
+                    <p class="card-text mt-3">{{ post.description }}</p>
+                    <p class="text-muted">投稿日: {{ post.created_at|date:"Y年m月d日 H:i" }}</p>
+
+                    <!-- いいねボタン -->
+                    <div class="like-section mt-2">
+                        <button class="btn btn-like like-button p-2 rounded-2 {% if liked %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                            data-post-id="{{ post.id }}">
+                            いいね <span class="like-count">{{ post.likes.count }}</span>
+                        </button>
                     </div>
+
+                    <a href="{% url 'post_list' %}" class="btn btn-secondary mt-3">投稿一覧に戻る</a>
                 </div>
             </div>
         </div>
     </div>
+</div>
     <!-- コメントセクション -->
     <div class="container my-5">
         <h2 class="mb-4">コメント</h2>
@@ -270,6 +279,43 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const likeButton = document.querySelector('.like-button');
+
+        if (likeButton) {
+            likeButton.addEventListener('click', function() {
+                const postId = this.dataset.postId;
+                const url = `/posts/${postId}/like/`;
+
+                // 非同期でいいねリクエストを送信
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.liked) {
+                        // いいねが追加された場合、ボタンのクラスとテキストを変更
+                        likeButton.classList.remove('btn-outline-primary');
+                        likeButton.classList.add('btn-primary');
+                        likeButton.querySelector('.like-count').textContent = data.like_count;
+                    } else {
+                        // いいねが取り消された場合、元のスタイルに戻す
+                        likeButton.classList.remove('btn-primary');
+                        likeButton.classList.add('btn-outline-primary');
+                        likeButton.querySelector('.like-count').textContent = data.like_count;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+    });
+</script>
+
 </body>
 
 </html>

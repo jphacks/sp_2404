@@ -10,10 +10,11 @@ import base64
 import requests
 import time
 
-from .models import Post
+from .models import Post, Like
 from .forms import PostForm, ImageGenerationForm
 from .serializers import PostSerializer
 from .utils import process_location_prompt
+
 
 # API用ViewSet
 class PostViewSet(viewsets.ModelViewSet):
@@ -39,11 +40,14 @@ def post_detail(request, post_id):
             return redirect('post_detail', post_id=post.id)
     else:
         form = CommentForm()
-
+    liked = False
+    if request.user.is_authenticated:
+        liked = Like.objects.filter(user=request.user, post=post).exists()
     return render(request, 'posts/post_detail.html', {
         'post': post,
         'comments': comments,
         'form': form,
+        'liked': liked,
     })
 
 def post_list(request):
@@ -51,7 +55,13 @@ def post_list(request):
     paginator = Paginator(post_list, 10)  # 1ページあたり10件表示
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'posts/post_list.html', {'page_obj': page_obj})
+
+    # ユーザーがログインしている場合、各投稿に対する「いいね」の状態を確認
+    liked_posts = []
+    if request.user.is_authenticated:
+        liked_posts = Like.objects.filter(user=request.user, post__in=page_obj.object_list).values_list('post_id', flat=True)
+
+    return render(request, 'posts/post_list.html', {'page_obj': page_obj, 'liked_posts': liked_posts})
 
 @login_required
 def create_post(request):
@@ -141,3 +151,21 @@ def delete_comment(request, comment_id):
         return redirect('post_detail', post_id=comment.post.id)
     else:
         return HttpResponseForbidden("削除権限がありません")
+
+@login_required
+def like_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    like, created = Like.objects.get_or_create(user=request.user, post=post)
+
+    if not created:
+        # 既に「いいね」していた場合は削除
+        like.delete()
+        liked = False
+    else:
+        liked = True
+
+    # リクエストがAJAXかどうかを確認
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'liked': liked, 'like_count': post.likes.count()})
+
+    return redirect('post_detail', post_id=post.id)
