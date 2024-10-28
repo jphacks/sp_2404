@@ -55,10 +55,21 @@
 * django-bootstrap5==24.2
 * django-bootstrap-icons==0.8.7
 
-#### デバイス
-* Ubuntu-22.04
-* 
+#### 実行環境
+#### 【サーバーサイド】
+以下のサーバー環境で動作を確認しています。  
+- **Ubuntu 22.04** (さくらのクラウド IaaS)  
+- **Mac** (macOS)  
+- **Windows Subsystem for Linux (WSL)**: Ubuntu
+#### 【クライアント】
+以下のブラウザおよびデバイスで正常に動作を確認済みです。  
+- **PCブラウザ**  
+  - Google Chrome  
+  - Safari  
 
+- **スマートフォンブラウザ**  
+  - Google Chrome (Android / iOS)  
+  - Safari (iOS)
 ### 独自技術
 #### ハッカソンで開発した独自機能・技術
 * ユーザーの投稿説明文から生成プロンプトを作成する機能
